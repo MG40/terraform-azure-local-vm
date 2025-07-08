@@ -1,175 +1,192 @@
-# This file defines the input variables required for the Azure Local VM deployment.
-# Dummy default values are provided for quick testing and demonstration purposes.
-# Please replace these with your actual values for production deployments.
+# This file defines the input variables required for the Azure Stack HCI VM deployment module.
+# Default values are set to align with common Azure Portal defaults or for quick testing.
+# Please review and adjust these values for your specific production deployments.
 
-# --- Resource Group Variables ---
+# --- Core Resource Variables ---
+# These variables define the names for essential Azure resources like Resource Groups
+# and Custom Locations, which are foundational for deploying VMs on Azure Stack HCI.
 
 variable "resource_group_name" {
-  description = "The name of the primary Azure Resource Group where the resources will be located."
   type        = string
-  default     = "rg-hci-primary-dev" # Dummy value
+  description = "The name of the primary Azure Resource Group where the resources will be deployed."
+  default     = "RG" # Placeholder: Update with your actual primary resource group name.
 }
 
 variable "resource_group_name_physical" {
-  description = "The name of the physical (secondary) Azure Resource Group, typically for resources in a different location or cluster."
   type        = string
-  default     = "rg-hci-physical-dev" # Dummy value
+  description = "The name of the physical (secondary) Azure Resource Group where the resources will be deployed. This is typically used for resources associated with a different physical location or cluster."
+  default     = "RG" # Placeholder: Update with your actual physical resource group name.
 }
 
-# --- Custom Location Variables ---
-
 variable "custom_location_name" {
-  description = "The name of the primary Azure Custom Location for Azure Stack HCI."
   type        = string
-  default     = "cl-hci-primary-dev" # Dummy value
+  description = "Enter the custom location name of your HCI cluster. This represents the Azure Arc-enabled location where the VMs will be provisioned."
+  default     = "azure-local-cl" # Placeholder: Update with your actual primary custom location name.
 }
 
 variable "custom_location_name_physical" {
-  description = "The name of the physical (secondary) Azure Custom Location for Azure Stack HCI."
   type        = string
-  default     = "cl-hci-physical-dev" # Dummy value
+  description = "Enter the custom location name of your HCI cluster for the physical (secondary) deployment. This is for VMs in a separate physical location or cluster."
+  default     = "azure-local-cl" # Placeholder: Update with your actual physical custom location name.
 }
-
-# --- VM Image Variables ---
-
-variable "is_marketplace_image" {
-  description = "A boolean flag indicating whether the VM image is from the Azure Marketplace (true) or a custom gallery image (false)."
-  type        = bool
-  default     = false # Assuming custom gallery image by default if not specified
-}
-
-variable "image_name" {
-  description = "The name of the primary VM Image (Gallery Image) to be used for creating virtual machines."
-  type        = string
-  default     = "WinSrv2022-Standard-Gen2" # Dummy value
-}
-
-variable "image_name_physical" {
-  description = "The name of the physical (secondary) VM Image to be used for creating virtual machines."
-  type        = string
-  default     = "WinSrv2022-Standard-Gen2-Physical" # Dummy value
-}
-
-# --- Logical Network Variables ---
 
 variable "logical_network_name" {
-  description = "The name of the primary Logical Network to which the VMs will connect."
   type        = string
-  default     = "ln-hci-primary-dev" # Dummy value
+  description = "Enter the name of the primary logical network you would like to use for the VM deployment. This network defines the IP addressing and connectivity for your VMs."
+  default     = "logical" # Placeholder: Update with your actual primary logical network name.
 }
 
 variable "logical_network_name_physical" {
-  description = "The name of the physical (secondary) Logical Network to which the VMs will connect."
   type        = string
-  default     = "ln-hci-physical-dev" # Dummy value
+  description = "Enter the name of the logical network for the physical (secondary) VM deployment. This network defines the IP addressing and connectivity for VMs in a separate physical location."
+  default     = "logical" # Placeholder: Update with your actual physical logical network name.
+}
+
+# --- VM Image Variables ---
+# These variables define the virtual machine images used for creating new VM instances.
+
+variable "image_name" {
+  type        = string
+  description = "Enter the name of the VM image you would like to use for the primary VM deployment. This image defines the operating system and base configuration."
+  default     = "image" # Placeholder: Update with the actual name of your primary VM image.
+}
+
+variable "image_name_physical" {
+  type        = string
+  description = "Enter the name of the VM image you would like to use for the physical (secondary) VM deployment."
+  default     = "image-name" # Placeholder: Update with the actual name of your physical VM image.
+}
+
+variable "is_marketplace_image" {
+  type        = bool
+  description = "Set to 'true' if the referenced image is sourced directly from Azure Marketplace; set to 'false' if it's a custom gallery image."
+  default     = true # Default set to true, as per common scenarios.
 }
 
 # --- Virtual Machine Configuration Variables ---
-
-variable "enable_telemetry" {
-  description = "Controls whether telemetry reporting is enabled for the deployed virtual machines."
-  type        = bool
-  default     = true # Common default for AVM modules
-}
+# These variables control the specifications and settings of the virtual machine instances.
 
 variable "name" {
-  description = "The name of the primary virtual machine instance."
   type        = string
-  default     = "vm-hci-primary-dev" # Dummy value
+  description = "Name of the primary VM resource. This name will be used in Azure and for the VM's hostname."
+  default     = "name" # Placeholder: Update with your desired VM name.
+  validation {
+    condition     = length(var.name) > 0
+    error_message = "The VM name cannot be empty."
+  }
+  validation {
+    condition     = length(var.name) <= 15
+    error_message = "The VM name must be 15 characters or less (due to NetBIOS name limitations)."
+  }
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9-]*$", var.name))
+    error_message = "The VM name must contain only alphanumeric characters and hyphens."
+  }
 }
 
 variable "vm_admin_username" {
-  description = "The administrator username for the virtual machines."
   type        = string
-  default     = "azureuser" # Dummy value
+  description = "The administrator username for accessing the VM."
+  default     = "admin" # Placeholder: Update with your desired admin username.
 }
 
 variable "vm_admin_password" {
-  description = "The administrator password for the virtual machines."
   type        = string
-  sensitive   = true # Mark as sensitive to prevent logging in plain text
-  default     = "P@ssw0rd123!" # Dummy value - CHANGE THIS FOR PRODUCTION!
+  description = "The administrator password for the VM. This should be a strong password."
+  default     = "admin_password" # WARNING: This is a dummy value. CHANGE THIS FOR PRODUCTION!
+  sensitive   = true # Marks the variable as sensitive to prevent its value from being logged.
 }
 
 variable "v_cpu_count" {
-  description = "The number of virtual CPUs to allocate to the virtual machines."
   type        = number
-  default     = 2 # Dummy value
+  description = "The number of virtual CPUs to allocate to the VM."
+  default     = 2 # Common default, adjust based on workload requirements.
 }
 
 variable "memory_mb" {
-  description = "The amount of memory (in MB) to allocate to the virtual machines."
   type        = number
-  default     = 4096 # Dummy value (4GB)
+  description = "The amount of memory (in MB) to allocate to the VM."
+  default     = 8192 # Default to 8GB (8192 MB).
 }
 
 variable "dynamic_memory" {
-  description = "Specifies whether dynamic memory is enabled for the virtual machines."
   type        = bool
-  default     = false
-}
-
-variable "dynamic_memory_max" {
-  description = "The maximum amount of dynamic memory (in MB) for the virtual machines."
-  type        = number
-  default     = 8192 # Dummy value
-}
-
-variable "dynamic_memory_min" {
-  description = "The minimum amount of dynamic memory (in MB) for the virtual machines."
-  type        = number
-  default     = 2048 # Dummy value
+  description = "Set to 'true' to enable dynamic memory for the VM, allowing memory to be adjusted based on workload."
+  default     = false # Default to false if dynamic memory is not required.
 }
 
 variable "dynamic_memory_buffer" {
-  description = "The percentage of memory buffer for dynamic memory (e.g., 20 for 20%)."
   type        = number
-  default     = 20 # Dummy value
+  description = "The percentage of memory buffer (e.g., 20 for 20%) when dynamic memory is enabled. This provides headroom for memory spikes."
+  default     = 20 # Common default for dynamic memory buffer.
+}
+
+variable "dynamic_memory_max" {
+  type        = number
+  description = "The maximum amount of dynamic memory (in MB) that can be allocated to the VM."
+  default     = 8192 # Default to 8GB (8192 MB) as max.
+}
+
+variable "dynamic_memory_min" {
+  type        = number
+  description = "The minimum amount of dynamic memory (in MB) that will be allocated to the VM."
+  default     = 512 # Default to 512 MB as min.
 }
 
 variable "data_disk_params" {
-  description = "A map of data disk configurations for the virtual machines."
   type = map(object({
     name       = string
     diskSizeGB = number
     dynamic    = bool
   }))
-  default = { # Dummy value
-    disk1 = {
-      name       = "data-disk-01"
-      diskSizeGB = 128
-      dynamic    = false
-    }
-  }
+  default     = {} # Default to an empty map if no additional data disks are required.
+  description = "A map describing the data disks to attach to the VM. Provide an empty map for no additional disks, or a map structured as per the module's documentation (e.g., { disk1 = { name = \"data-disk-01\", diskSizeGB = 128, dynamic = false } })."
 }
 
 variable "private_ip_address" {
-  description = "The static private IP address to assign to the primary virtual machine."
   type        = string
-  default     = "10.0.0.100" # Dummy value
+  description = "The static private IP address to assign to the VM's network interface. If left as default, a dynamic IP may be assigned depending on network configuration."
+  default     = "1.2.3.4" # Placeholder: Update with your desired private IP address.
 }
 
+# --- Domain Join Variables (Optional) ---
+# These variables are used to automatically join the VM to an Active Directory domain during deployment.
+
 variable "domain_to_join" {
-  description = "The domain name to join the virtual machines to."
   type        = string
-  default     = "example.com" # Dummy value
+  description = "Optional: The fully qualified domain name (FQDN) to join the VM to (e.g., 'contoso.com'). If specified, 'domain_target_ou', 'domain_join_user_name', and 'domain_join_password' are required."
+  default     = "" # Default to empty if domain join is not required.
 }
 
 variable "domain_target_ou" {
-  description = "The target Organizational Unit (OU) within the domain for the virtual machines."
   type        = string
-  default     = "OU=Servers,DC=example,DC=com" # Dummy value
+  description = "Optional: The target Organizational Unit (OU) within the domain where the VM's computer object will be created (e.g., 'OU=Servers,DC=contoso,DC=com'). Required if 'domain_to_join' is specified."
+  default     = "" # Default to empty if domain join is not required.
 }
 
 variable "domain_join_user_name" {
-  description = "The username for joining the virtual machines to the domain."
   type        = string
-  default     = "domainjoinuser" # Dummy value
+  description = "Optional: The username with permissions to join the VM to the domain (e.g., 'domain-joiner'). Required if 'domain_to_join' is specified."
+  default     = "" # Default to empty if domain join is not required.
 }
 
 variable "domain_join_password" {
-  description = "The password for joining the virtual machines to the domain."
   type        = string
-  sensitive   = true # Mark as sensitive
-  default     = "DomainP@ssw0rd!" # Dummy value - CHANGE THIS FOR PRODUCTION!
+  description = "Optional: The password for the user specified in 'domain_join_user_name'. Required if 'domain_to_join' is specified."
+  default     = null # Default to null if domain join is not required.
+  sensitive   = true # Marks the variable as sensitive.
+}
+
+# --- Telemetry Variable ---
+# This variable controls anonymous telemetry collection for the module.
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = false # Default to false to disable telemetry by default.
+  description = <<DESCRIPTION
+This variable controls whether or not anonymous telemetry is enabled for the module.
+For more information on what data is collected and why, please refer to:
+<https://aka.ms/avm/telemetryinfo>.
+If this variable is set to 'false', then no telemetry will be collected.
+DESCRIPTION
 }
